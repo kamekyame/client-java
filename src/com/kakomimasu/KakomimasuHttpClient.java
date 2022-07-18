@@ -88,10 +88,14 @@ public class KakomimasuHttpClient {
     return this.post("/v1/match", Classes.MatchRes.class, reqDto);
   }
 
-  void connectWebSocket() {
+  void connectWebSocket(MatchListener listener) {
 
     WebSocket.Builder wsBuilder = this.httpClient.newWebSocketBuilder();
-    WebSocket.Listener listener = new WebSocket.Listener() {
+    WebSocket.Listener wsListener = new WebSocket.Listener() {
+      private String readData = "";
+      private boolean gaming = false;
+      private boolean ending = false;
+
       @Override
       public void onOpen(WebSocket webSocket) {
         System.out.println("WebSocket opened");
@@ -101,8 +105,36 @@ public class KakomimasuHttpClient {
 
       @Override
       public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-        System.out.println("WebSocket received: " + data);
+        readData += data.toString();
         webSocket.request(1);
+
+        if (last == false)
+          return null;
+        String json = readData;
+        readData = "";
+        // System.out.println("WebSocket received: " + readData + "\nlast? : " + last);
+        var type = JsonUtil.parse(json, Classes.WsGameRes.class).type;
+        Classes.Game game;
+        System.out.println(type);
+        if (type.equals("initial")) {
+          game = JsonUtil.parse(json, Classes.WsGameInitialRes.class).games[0];
+        } else if (type.equals("update")) {
+          game = JsonUtil.parse(json, Classes.WsGameUpdateRes.class).game;
+          // System.out.println(readData);
+        } else {
+          return null;
+        }
+        if (this.gaming == false && game.gaming == true) {
+          this.gaming = true;
+          listener.onStart(game);
+        } else if (this.ending == false && game.ending == true) {
+          this.ending = true;
+          listener.onEnd(game);
+        } else if (game.gaming) {
+          listener.onTurn(game);
+        }
+
+        readData = "";
         return null;
       }
 
@@ -114,26 +146,11 @@ public class KakomimasuHttpClient {
     };
 
     CompletableFuture<WebSocket> future = wsBuilder.buildAsync(URI.create("ws://localhost:8880" + "/v1/ws/game"),
-        listener);
-    // future.
-    // while (true) {
-    // future.join();
-    // CompletableFuture.allOf(future).join();
-    // System.out.println("wait");
-
+        wsListener);
     try {
-      WebSocket ws = future.get();
-      // ws.
+      future.get();
     } catch (InterruptedException | ExecutionException e) {
       e.printStackTrace();
-      // break;
     }
-    // }
-    // try {
-    // WebSocket ws = future.get();
-    // // ws.sendText("Hello World!!", true);
-    // } catch (InterruptedException | ExecutionException e) {
-    // e.printStackTrace();
-    // }
   }
 }
