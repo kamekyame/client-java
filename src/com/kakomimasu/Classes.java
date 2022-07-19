@@ -6,9 +6,15 @@ public class Classes {
   public static class MatchReq {
     public String spec;
     public Guest guest;
+    public boolean useAi;
+    public AiOption aiOption;
 
     public static class Guest {
       public String name;
+    }
+
+    public static class AiOption {
+      public String aiName;
     }
   }
 
@@ -16,7 +22,7 @@ public class Classes {
     public String userId;
     public String spec;
     public String gameId;
-    public String index;
+    public int index;
     public String pic;
   }
 
@@ -25,9 +31,13 @@ public class Classes {
 
     public static class Action {
       public int agentId;
-      public String type;
+      public ActionType type;
       public int x;
       public int y;
+
+      public static enum ActionType {
+        PUT, NONE, MOVE, REMOVE
+      }
     }
   }
 
@@ -120,4 +130,5 @@ public class Classes {
     public int nSec;
     public int[] points;
   }
+
 }
