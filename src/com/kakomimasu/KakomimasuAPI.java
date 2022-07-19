@@ -13,8 +13,6 @@ public class KakomimasuAPI {
   private String bearerTokenOrName = "guest";
   private String spec;
 
-  private String gameId;
-
   private KakomimasuHttpClient httpClient;
 
   public KakomimasuAPI() {
@@ -39,10 +37,7 @@ public class KakomimasuAPI {
     this.spec = spec;
   }
 
-  public void matchInFree(MatchListener listener) throws KkmmException {
-    if (this.gameId != null) {
-      throw new KkmmException("既に別のゲームに参加しています。");
-    }
+  public void matchInFree(MatchListener listener) {
     var req = new Classes.MatchReq();
     req.spec = this.spec;
     if (this.playerType == PlayerType.GUEST) {
@@ -50,9 +45,6 @@ public class KakomimasuAPI {
       req.guest.name = this.bearerTokenOrName;
     }
     var res = this.httpClient.match(req);
-    // System.out.println(res);
-    this.gameId = res.gameId;
-
-    this.httpClient.connectWebSocket(listener);
+    this.httpClient.connectWebSocket(res.gameId, listener);
   }
 }

@@ -19,6 +19,8 @@ public class KakomimasuHttpClient {
   private String host;
   private String bearerToken;
 
+  private boolean ending = false;
+
   KakomimasuHttpClient(String host) {
     this.httpClient = HttpClient.newBuilder().build();
     this.host = host;
@@ -88,19 +90,19 @@ public class KakomimasuHttpClient {
     return this.post("/v1/match", Classes.MatchRes.class, reqDto);
   }
 
-  void connectWebSocket(MatchListener listener) {
-
+  void connectWebSocket(String gameId, MatchListener listener) {
     WebSocket.Builder wsBuilder = this.httpClient.newWebSocketBuilder();
+
     WebSocket.Listener wsListener = new WebSocket.Listener() {
       private String readData = "";
-      private boolean gaming = false;
-      private boolean ending = false;
 
       @Override
       public void onOpen(WebSocket webSocket) {
         System.out.println("WebSocket opened");
-        webSocket.sendText("{\"q\":\"type:normal\"}", true);
-        webSocket.request(1000);
+        String json = String.format("{\"q\":\"id:%s\"}", gameId);
+        System.out.println(json);
+        webSocket.sendText(json, true);
+        webSocket.request(1);
       }
 
       @Override
@@ -109,6 +111,8 @@ public class KakomimasuHttpClient {
         webSocket.request(1);
 
         if (last == false)
+          return null;
+        if (readData.equals(""))
           return null;
         String json = readData;
         readData = "";
@@ -124,25 +128,27 @@ public class KakomimasuHttpClient {
         } else {
           return null;
         }
-        if (this.gaming == false && game.gaming == true) {
-          this.gaming = true;
-          listener.onStart(game);
-        } else if (this.ending == false && game.ending == true) {
-          this.ending = true;
-          listener.onEnd(game);
-        } else if (game.gaming) {
+        if (game.gaming) {
           listener.onTurn(game);
+        } else if (game.ending) {
+          listener.onEnd(game);
+          // webSocket.request(0);
+          KakomimasuHttpClient.this.ending = true;
+          // ending = true;
+        } else if (game.board != null) {
+          listener.onStart(game);
+          // KakomimasuHttpClient.this.ending = true;
         }
 
-        readData = "";
         return null;
       }
 
-      @Override
-      public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-        System.out.println("WebSocket closed: " + statusCode + " " + reason);
-        return null;
-      }
+      // @Override
+      // public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String
+      // reason) {
+      // System.out.println("WebSocket closed: " + statusCode + " " + reason);
+      // return null;
+      // }
     };
 
     CompletableFuture<WebSocket> future = wsBuilder.buildAsync(URI.create("ws://localhost:8880" + "/v1/ws/game"),
@@ -151,6 +157,14 @@ public class KakomimasuHttpClient {
       future.get();
     } catch (InterruptedException | ExecutionException e) {
       e.printStackTrace();
+    }
+
+    while (this.ending == false) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
   }
 }

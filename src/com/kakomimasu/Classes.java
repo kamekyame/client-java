@@ -20,6 +20,22 @@ public class Classes {
     public String pic;
   }
 
+  public static class MatchActionReq {
+    public Action[] actions;
+
+    public static class Action {
+      public int agentId;
+      public String type;
+      public int x;
+      public int y;
+    }
+  }
+
+  public static class MatchActionRes {
+    public long receptionUnixTime;
+    public int turn;
+  }
+
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class WsGameRes {
     public String type;
