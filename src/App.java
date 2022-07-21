@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import com.kakomimasu.*;
 import com.kakomimasu.Classes.*;
 import com.kakomimasu.Classes.MatchActionReq.Action.ActionType;
+import com.kakomimasu.Classes.MatchReq.AiOption;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -83,6 +84,9 @@ public class App {
 
         };
         // client.matchInFree(matchListener);
-        client.connectMatchInVsAI("none", matchListener);
+        var aiOption = new AiOption();
+        aiOption.aiName = "a1";
+        aiOption.boardName = "A-1";
+        client.connectMatchInVsAI(aiOption, matchListener);
     }
 }

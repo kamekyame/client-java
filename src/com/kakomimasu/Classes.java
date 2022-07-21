@@ -15,6 +15,7 @@ public class Classes {
 
     public static class AiOption {
       public String aiName;
+      public String boardName;
     }
   }
 

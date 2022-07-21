@@ -66,12 +66,12 @@ public class KakomimasuAPI {
     this.connectWebSocket(this.matchRes, listener);
   }
 
-  public void connectMatchInVsAI(String aiName, MatchListener listener) throws KakomimasuException {
+  public void connectMatchInVsAI(Classes.MatchReq.AiOption aiOption, MatchListener listener)
+      throws KakomimasuException {
     var req = new Classes.MatchReq();
     req.spec = this.spec;
     req.useAi = true;
-    req.aiOption = new Classes.MatchReq.AiOption();
-    req.aiOption.aiName = aiName;
+    req.aiOption = aiOption;
     this.matchRes = this.match(req);
     this.connectWebSocket(this.matchRes, listener);
   }
