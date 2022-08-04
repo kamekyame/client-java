@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group 'com.kakomimasu'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.3'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.13.3'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.13.3'
+}
